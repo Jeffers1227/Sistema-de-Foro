@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head}"></head>
+<body>
+    <nav th:replace="~{layout :: nav}"></nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-pencil-square"></i> 
+                            <span th:text="${forum.id == null ? 'Crear Nuevo Foro' : 'Editar Foro'}">Crear Foro</span>
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="${forum.id == null} ? @{/forums} : @{/forums/update/{id}(id=${forum.id})}" 
+                              th:object="${forum}" method="post">
+                            
+                            <input type="hidden" th:field="*{id}">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Título</label>
+                                <input type="text" th:field="*{title}" class="form-control form-control-lg" 
+                                       placeholder="Escribe un título descriptivo"
+                                       th:classappend="${#fields.hasErrors('title')} ? 'is-invalid' : ''">
+                                <div class="invalid-feedback" th:errors="*{title}"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Contenido</label>
+                                <textarea th:field="*{content}" class="summernote form-control" 
+                                          th:classappend="${#fields.hasErrors('content')} ? 'is-invalid' : ''"></textarea>
+                                <div class="invalid-feedback" th:errors="*{content}"></div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="/" class="btn btn-secondary me-md-2">Cancelar</a>
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <span th:text="${forum.id == null ? 'Publicar Foro' : 'Guardar Cambios'}">Publicar</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block th:replace="~{layout :: scripts}"></th:block>
+</body>
+</html>

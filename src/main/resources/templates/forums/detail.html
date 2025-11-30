@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head}"></head>
+<body>
+    <nav th:replace="~{layout :: nav}"></nav>
+
+    <div class="container mt-4">
+        
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h3 class="h4 mb-0 text-primary">
+                    <i class="bi bi-chat-square-text-fill me-2"></i>
+                    <span th:text="${forum.title}">Título</span>
+                </h3>
+                
+                <span class="badge bg-light text-dark border p-2 d-flex align-items-center">
+                    <img th:src="${forum.author.avatarUrl}" width="24" height="24" class="rounded-circle me-2">
+                    <a th:href="@{/profile/{username}(username=${forum.author.username})}" 
+                       class="text-decoration-none text-dark"
+                       th:text="${forum.author.username}">Autor</a>
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="card-text fs-5" th:utext="${forum.content}"></div>
+                
+                <div class="text-muted small mt-3 border-top pt-2 d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-clock"></i> Publicado 
+                        <span th:text="${prettyTime.format(forum.createdAt)}">Fecha</span>
+                        
+                        <span class="mx-2">|</span>
+                        <i class="bi bi-eye-fill"></i> Visto <span th:text="${forum.views}">0</span> veces
+                    </div>
+
+                    <div th:if="${#authentication.name == forum.author.username or #authorization.expression('hasRole(''ROLE_ADMIN'')')}" 
+                         class="d-flex gap-2">
+                        
+                        <a th:href="@{/forums/edit/{id}(id=${forum.id})}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        
+                        <form th:action="@{/forums/delete/{id}(id=${forum.id})}" method="post" 
+                              onsubmit="return confirm('¿Estás seguro de que deseas eliminar este foro completo?');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="mb-3 mt-5">
+            <i class="bi bi-chat-dots-fill"></i> Comentarios 
+            <span class="badge bg-secondary rounded-pill fs-6" th:text="${#lists.size(forum.comments)}">0</span>
+        </h4>
+
+        <div th:each="comment : ${forum.comments}" class="card mb-3 border-0 shadow-sm bg-light">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex align-items-center">
+                        <a th:href="@{/profile/{username}(username=${comment.author.username})}">
+                            <img th:src="${comment.author.avatarUrl}" width="40" height="40" 
+                                 class="rounded-circle me-3 shadow-sm border bg-white">
+                        </a>
+                        <div>
+                            <h6 class="mb-0 fw-bold">
+                                <a th:href="@{/profile/{username}(username=${comment.author.username})}" 
+                                   class="text-decoration-none text-dark" th:text="${comment.author.username}">Usuario</a>
+                            </h6>
+                            <small class="text-muted" th:text="${prettyTime.format(comment.createdAt)}">Tiempo</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <span th:if="${comment.validated}" class="badge bg-success rounded-pill px-3 py-2">
+                            <i class="bi bi-check-circle-fill"></i> Útil
+                        </span>
+
+                        <a th:if="${#authentication.name == comment.author.username}" 
+                           th:href="@{/comments/edit/{id}(id=${comment.id})}" 
+                           class="btn btn-link text-primary p-0 ms-2" title="Editar">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+
+                        <form th:if="${#authentication.name == comment.author.username 
+                                      or #authentication.name == forum.author.username 
+                                      or #authorization.expression('hasRole(''ROLE_ADMIN'')')}"
+                              th:action="@{/comments/delete/{id}(id=${comment.id})}" method="post"
+                              onsubmit="return confirm('¿Borrar comentario?');">
+                            <button type="submit" class="btn btn-link text-danger p-0 ms-2" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card-text ps-5 mt-2" th:utext="${comment.text}"></div>
+                
+                <div class="text-end ps-5" th:if="${isOwner and !comment.validated}">
+                    <form th:action="@{/comments/validate/{id}(id=${comment.id})}" method="post">
+                        <input type="hidden" name="forumId" th:value="${forum.id}">
+                        <button type="submit" class="btn btn-outline-success btn-sm mt-2">
+                            <i class="bi bi-check-lg"></i> Validar Respuesta
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(forum.comments)}" class="alert alert-light text-center border mt-3">
+            <p class="mt-2 mb-0">No hay comentarios aún.</p>
+        </div>
+
+        <div class="card mt-5 mb-5 border-primary" sec:authorize="isAuthenticated()">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-pencil-square"></i> Agregar Comentario
+            </div>
+            <div class="card-body">
+                <form th:action="@{/comments/{forumId}(forumId=${forum.id})}" method="post">
+                    <div class="mb-3">
+                        <textarea name="text" class="summernote form-control" rows="4"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Publicar</button>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+
+    <th:block th:replace="~{layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{layout :: head}"></head>
+
+<body>
+    <nav th:replace="~{layout :: nav}"></nav>
+
+    <div class="container">
+
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-6">
+                <h1><i class="bi bi-chat-square-quote"></i> Foros Recientes</h1>
+            </div>
+            <div class="col-md-6">
+                <form th:action="@{/}" method="get" class="d-flex gap-2">
+                    <input type="text" name="query" class="form-control" placeholder="Buscar temas..."
+                        th:value="${query}">
+                    <button class="btn btn-outline-primary" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    <a th:if="${query != null && !query.isEmpty()}" href="/" class="btn btn-outline-secondary"
+                        title="Limpiar búsqueda">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </form>
+            </div>
+        </div>
+
+        <div class="list-group shadow-sm">
+            <a th:each="forum : ${forums.content}" th:href="@{/forums/{id}(id=${forum.id})}"
+                class="list-group-item list-group-item-action p-3">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1 text-primary">
+                        <i class="bi bi-chat-text me-2"></i>
+                        <span th:text="${forum.title}">Título</span>
+                    </h5>
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        <span th:text="${prettyTime.format(forum.createdAt)}">Tiempo</span>
+                    </small>
+                </div>
+                <p class="mb-1 text-secondary text-truncate" th:text="${forum.content.replaceAll('<[^>]*>', '')}">
+                    Contenido...
+                </p>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    
+                    <small class="d-flex align-items-center">
+                        <img th:src="${forum.author.avatarUrl}" width="20" height="20" class="rounded-circle me-2" alt="Avatar">
+                        Autor: 
+                        <span class="ms-1" th:text="${forum.author.username}">User</span>
+                    </small>
+
+                    <div class="d-flex align-items-center">
+                        <small class="text-muted me-3" title="Visitas">
+                            <i class="bi bi-eye"></i> <span th:text="${forum.views}">0</span>
+                        </small>
+
+                        <span class="badge bg-light text-dark border">
+                            <i class="bi bi-chat-dots"></i>
+                            <span th:text="${#lists.size(forum.comments)}">0</span> com
+                        </span>
+                    </div>
+                </div>
+            </a>
+
+            <div th:if="${forums.isEmpty()}" class="alert alert-info text-center mt-3">
+                <i class="bi bi-info-circle"></i> No se encontraron foros.
+            </div>
+        </div>
+
+        <nav th:if="${totalPages > 1}" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link" th:href="@{/(page=${currentPage - 1}, query=${query})}">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </a>
+                </li>
+
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${currentPage == i} ? 'active'">
+                    <a class="page-link" th:text="${i + 1}" th:href="@{/(page=${i}, query=${query})}">1</a>
+                </li>
+
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                    <a class="page-link" th:href="@{/(page=${currentPage + 1}, query=${query})}">
+                        Siguiente <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="fixed-bottom m-4 text-end">
+            <a href="/forums/new" class="btn btn-primary btn-lg rounded-circle shadow-lg"
+                style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-plus-lg fs-2"></i>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
