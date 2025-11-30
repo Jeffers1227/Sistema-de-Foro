@@ -42,8 +42,9 @@ El proyecto requiere una base de datos MySQL para arrancar.
 1.  Abre tu cliente SQL (phpMyAdmin, Workbench, etc.).
 2.  Ejecuta el siguiente comando para crear la base de datos:
 
-```sql
+
 CREATE DATABASE forum_db;
+
 
 y por último en colocar en el terminal:
  mvn spring-boot:run
@@ -57,4 +58,5 @@ Contraseña: 1234
 
 Usuario: pepe
 Contraseña: 1234
+
 
